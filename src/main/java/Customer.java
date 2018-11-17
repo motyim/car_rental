@@ -1,84 +1,48 @@
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
 public class Customer {
-    private String _name;
-    private Vector _rentals = new Vector();
+
+    private String name;
+    private Vector rentals = new Vector();
 
     public Customer(String name) {
-        _name = name;
+        this.name = name;
     }
 
     public void addRental(Rental arg) {
-        _rentals.addElement(arg);
+        rentals.addElement(arg);
+    }
+
+    public Vector getRentals() {
+        return rentals;
     }
 
     public String getName() {
-        return _name;
+        return name;
     }
 
     public String statement() {
         double totalAmount = 0;
         int rewardPoints = 0;
-        Enumeration rentals = _rentals.elements();
+        Enumeration rentals = getRentals().elements();
         String result = "Rental Record for:" + getName() + "\n";
+
+        List<Rule> rules = new ArrayList<Rule>();
+        rules.add(new CalcRentedValByCarRule());
+
         while (rentals.hasMoreElements()) {
-            double thisAmount = 0;
+            // Setup fee, as decided by management in Dec 2016
+            double thisAmount = 50;
             Rental each = (Rental) rentals.nextElement();
 
-            //determine amounts for each line
-
-//            if (each.getVehicle().getRateCode()==Vehicle.SEDAN || each.getVehicle().getRateCode()==Vehicle.SUV)
-//            {
-//                thisAmount=50*each.getDaysRented()+(each.getKilometersRented()-each.getDaysRented()*60)*2;
-//            }
-//            else
-//            {
-//                thisAmount=80*each.getDaysRented()+(each.getKilometersRented()-each.getDaysRented()*70)*3;
-//            }
-
-            // Setup fee, as decided by management in Dec 2016
-            thisAmount=50.0;
-
-            switch (each.getVehicle().getRateCode()) {
-
-                case Vehicle.SEDAN:
-                    thisAmount += 100*each.getDaysRented();
-                    if (each.getKilometersRented() > each.getDaysRented()*50)
-                    {
-                        thisAmount += (each.getKilometersRented() - each.getDaysRented()*50) * 2;
-                    }
-                    break;
-
-
-                case Vehicle.FOURxFOUR:
-                    /* New Price applied
-                    thisAmount += Double(190*each.getDaysRented())
-                    */
-                    thisAmount += 200*each.getDaysRented();
-                    break;
-
-                case Vehicle.SUV:
-                    thisAmount += 150*each.getDaysRented();
-                    if (each.getKilometersRented() > each.getDaysRented()*70)
-                        thisAmount += (each.getKilometersRented() - each.getDaysRented()*70) * 2;
-                    break;
-                default:
-                        thisAmount+=0;
+            for (Rule rule: rules) {
+                thisAmount = rule.calculate(each , thisAmount);
             }
 
-            // New rule of 2017, by john
-            if (!(each.getKilometersRented() <200))
-            {
-                if (each.getDaysRented()>10 && each.getVehicle().getRateCode()== Vehicle.FOURxFOUR)
-                {
-                    thisAmount-=thisAmount*0.05;
-                }
-                else if (each.getVehicle().getRateCode()== Vehicle.SUV)
-                {
-                    thisAmount-=thisAmount*0.05;
-                }
-            }
+
 
             if (!each.isLateFee()) {
                 // add frequent renter points
@@ -111,4 +75,6 @@ public class Customer {
                 " new Reward Points\n\n";
         return result;
     }
+
+
 }
