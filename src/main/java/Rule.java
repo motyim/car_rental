@@ -3,8 +3,11 @@
  * @see <www.motyim.me>
  * @since 11/16/2018
  */
-public interface Rule {
+public interface Rule  {
 
-    double calculate(Rental rental,double amount);
+
+    boolean match(Rental rental);
+
+    Record calculate(Rental rental,Record record);
 
 }
